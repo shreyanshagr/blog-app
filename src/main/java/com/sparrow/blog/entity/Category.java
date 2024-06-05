@@ -2,7 +2,6 @@ package com.sparrow.blog.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Generated;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.GenericGenerator;
@@ -15,19 +14,14 @@ import java.util.List;
 @Entity
 @Slf4j
 @NoArgsConstructor
-@Table(name="user")
-public class User {
+public class Category {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO,generator="native")
-//    @GenericGenerator(name = "native",strategy = "native")
-    private int user_id;
-    private String name;
-    private String email;
-    private String password;
-    private String about;
+//    @GeneratedValue(strategy= GenerationType.AUTO,generator="native")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private int categoryId;
+    private String categoryTitle;
+    private String categoryDescription;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-
 
 }
