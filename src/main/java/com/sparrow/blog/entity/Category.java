@@ -23,5 +23,7 @@ public class Category {
     private String categoryDescription;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    List<Post> post = new ArrayList<>();
 
 }

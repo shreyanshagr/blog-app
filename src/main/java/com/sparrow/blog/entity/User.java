@@ -2,10 +2,8 @@ package com.sparrow.blog.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Generated;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,13 +18,15 @@ public class User {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO,generator="native")
 //    @GenericGenerator(name = "native",strategy = "native")
-    private int user_id;
+    private int userId;
     private String name;
     private String email;
     private String password;
     private String about;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    List<Post> post = new ArrayList<>();
 
 
 

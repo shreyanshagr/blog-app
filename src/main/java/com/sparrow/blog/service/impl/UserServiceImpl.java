@@ -3,13 +3,21 @@ package com.sparrow.blog.service.impl;
 import com.sparrow.blog.entity.User;
 import com.sparrow.blog.exception.ResourceNotFoundException;
 import com.sparrow.blog.payload.UserDto;
+import com.sparrow.blog.payload.UserResponse;
 import com.sparrow.blog.repository.UserRepo;
 import com.sparrow.blog.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.sparrow.blog.service.impl.PostServiceImpl.getUser;
+import static com.sparrow.blog.service.impl.PostServiceImpl.getUserDto;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -24,8 +32,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserDto userDto, int user_id) {
-        User user = this.userRepo.findById(user_id).orElseThrow(()-> new ResourceNotFoundException("User","id",user_id));
+    public UserDto updateUser(UserDto userDto, int userId) {
+        User user = this.userRepo.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User","id",userId));
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
@@ -35,40 +43,58 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserById(int user_id) {
-        User user = this.userRepo.findById(user_id).orElseThrow(()-> new ResourceNotFoundException("User","id",user_id));
+    public UserDto getUserById(int userId) {
+        User user = this.userRepo.findById(userId).orElseThrow(()-> new ResourceNotFoundException("User","id",userId));
         return this.userToUserDto(user);
     }
 
     @Override
-    public List<UserDto> getAllUser() {
-        List<User> users = this.userRepo.findAll();
-        List<UserDto> userDtos = users.stream().map(this::userToUserDto).collect(Collectors.toList());
-        return userDtos;
+    public UserResponse getAllUser(int pageNumber, int pageSize, String sortBy, String sortDir) {
+        // Determine sort direction based on sortDir parameter
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+                Sort.by(sortBy).ascending() :
+                Sort.by(sortBy).descending();
+
+        // Create pageable object with page number, page size, and sort direction
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        // Fetch paginated users
+        Page<User> pageUser = this.userRepo.findAll(pageable);
+
+        // Map User entities to UserDto objects
+        List<UserDto> userDtos = pageUser.getContent().stream()
+                .map(this::userToUserDto)
+                .collect(Collectors.toList());
+
+        // Create and return UserResponse object with pagination details and userDtos
+        return getUserResponse(pageUser, userDtos);
     }
 
+
     @Override
-    public void deleteUser(int user_id) {
-        User user = this.userRepo.findById(user_id).orElseThrow(()->new ResourceNotFoundException("User","Id",user_id));
+    public void deleteUser(int userId) {
+        User user = this.userRepo.findById(userId).orElseThrow(()->new ResourceNotFoundException("User","Id",userId));
         this.userRepo.delete(user);
     }
     private User dtoToUser(UserDto userDto){
-        User user = new User();
-        user.setUser_id(userDto.getUser_id());
-        user.setName(userDto.getName());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());
-        user.setAbout(userDto.getAbout());
-        return user;
+        return getUser(userDto);
     }
+
     private UserDto userToUserDto(User user){
-        UserDto userDto = new UserDto();
-        userDto.setName(user.getName());
-        userDto.setUser_id(user.getUser_id());
-        userDto.setEmail(user.getEmail());
-        userDto.setPassword(user.getPassword());
-        userDto.setAbout(user.getAbout());
-        return userDto;
+        return getUserDto(user);
     }
+
+    private UserResponse getUserResponse(Page<User> pageUser, List<UserDto> userDtos) {
+        UserResponse userResponse = new UserResponse();
+        userResponse.setContent(userDtos);
+        userResponse.setPageNumber(pageUser.getNumber());
+        userResponse.setPageSize(pageUser.getSize());
+        userResponse.setTotalElements(pageUser.getTotalElements());
+        userResponse.setCurrentPageElements(pageUser.getNumberOfElements());
+        userResponse.setTotalPages(pageUser.getTotalPages());
+        userResponse.setLastPage(pageUser.isLast());
+        return userResponse;
+    }
+
 
 }

@@ -1,7 +1,9 @@
 package com.sparrow.blog.controller;
 
+import com.sparrow.blog.config.AppConstants;
 import com.sparrow.blog.payload.ApiResponse;
 import com.sparrow.blog.payload.UserDto;
+import com.sparrow.blog.payload.UserResponse;
 import com.sparrow.blog.service.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +16,7 @@ import java.util.List;
 
 @RestController
 @Slf4j
-@RequestMapping("api/users")
+@RequestMapping("api/user")
 public class UserController {
     @Autowired
     private UserService userService;
@@ -26,23 +28,29 @@ public class UserController {
         UserDto createUserDto = this.userService.createUser(userDto);
         return new ResponseEntity<>(createUserDto, HttpStatus.CREATED);
     }
-    @PutMapping("/{user_id}")
-    public ResponseEntity<UserDto> updateUser(@Valid @RequestBody UserDto userDto,@PathVariable int user_id){
-        UserDto updatedUser = this.userService.updateUser(userDto,user_id);
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserDto> updateUser(@Valid @RequestBody UserDto userDto,@PathVariable int userId){
+        UserDto updatedUser = this.userService.updateUser(userDto,userId);
         return ResponseEntity.ok(updatedUser);
     }
-    @DeleteMapping("/{user_id}")
-    public ResponseEntity<ApiResponse> deleteUser(@PathVariable int user_id){
-        this.userService.deleteUser(user_id);
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<ApiResponse> deleteUser(@PathVariable int userId){
+        this.userService.deleteUser(userId);
         return new ResponseEntity<ApiResponse>(new ApiResponse("User deleted Successfully",true), HttpStatus.OK);
     }
 
     @GetMapping("/")
-    public ResponseEntity<List<UserDto>> getAllUsers(){
-        return ResponseEntity.ok(this.userService.getAllUser());
+    public ResponseEntity<UserResponse> getAllUsers(
+            @RequestParam(value = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER,required = false) int pageNumber,
+            @RequestParam(value = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) int pageSize,
+            @RequestParam(value = "sortBy",defaultValue = AppConstants.USER_SORTBY,required = false) String sortBy,
+            @RequestParam(value = "sortDir",defaultValue = AppConstants.SORT_DIR,required = false) String sortDir
+    ){
+        return ResponseEntity.ok(this.userService.getAllUser(pageNumber,pageSize,sortBy,sortDir));
     }
-    @GetMapping("/{user_id}")
-    public ResponseEntity<UserDto> getSingleUser(@PathVariable int user_id) {
-        return ResponseEntity.ok(this.userService.getUserById(user_id));
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDto> getSingleUser(@PathVariable int userId) {
+        return ResponseEntity.ok(this.userService.getUserById(userId));
     }
 }

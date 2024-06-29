@@ -1,7 +1,9 @@
 package com.sparrow.blog.controller;
 
+import com.sparrow.blog.config.AppConstants;
 import com.sparrow.blog.payload.ApiResponse;
 import com.sparrow.blog.payload.CategoryDto;
+import com.sparrow.blog.payload.CategoryResponse;
 import com.sparrow.blog.repository.CategoryRepo;
 import com.sparrow.blog.service.CategoryService;
 import jakarta.validation.Valid;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/api/category")
 public class CategoryController {
     @Autowired
     private CategoryService categoryService;
@@ -34,8 +36,12 @@ public class CategoryController {
         return new ResponseEntity<>(categoryDto,HttpStatus.OK);
     }
     @GetMapping("/")
-    public ResponseEntity<List<CategoryDto>> getAllCategory(){
-        return new ResponseEntity<>(this.categoryService.getAllCategory(),HttpStatus.OK);
+    public ResponseEntity<CategoryResponse> getAllCategory (@RequestParam(value = "pageNumber",defaultValue = AppConstants.PAGE_NUMBER,required = false) int pageNumber,
+                                                            @RequestParam(value = "pageSize",defaultValue = AppConstants.PAGE_SIZE,required = false) int pageSize,
+                                                            @RequestParam(value = "sortBy",defaultValue = AppConstants.CATEGORY_SORTBY,required = false) String sortBy,
+                                                            @RequestParam(value = "sortDir",defaultValue = AppConstants.SORT_DIR,required = false) String sortDir
+    ){
+        return new ResponseEntity<>(this.categoryService.getAllCategory(pageNumber,pageSize,sortBy,sortDir),HttpStatus.OK);
     }
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<ApiResponse> deleteCategory(@PathVariable int categoryId){
