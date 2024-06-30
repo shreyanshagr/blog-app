@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -23,7 +25,9 @@ public class User {
     private String email;
     private String password;
     private String about;
+    @CreationTimestamp
     private LocalDateTime createdAt;
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     List<Post> post = new ArrayList<>();

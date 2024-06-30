@@ -3,6 +3,8 @@ package com.sparrow.blog.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +21,9 @@ public class Post {
     private String content;
     @Column(nullable = false)
     private String imageName;
+    @CreationTimestamp
     private LocalDateTime createdAt;
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
     @ManyToOne
     @JoinColumn(name = "category_id")

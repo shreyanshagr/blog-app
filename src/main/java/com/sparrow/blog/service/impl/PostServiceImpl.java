@@ -230,6 +230,7 @@ public class PostServiceImpl implements com.sparrow.blog.service.PostService {
         postDto.setTitle(post.getTitle());
         postDto.setImageName(post.getImageName());
         postDto.setCreatedAt(post.getCreatedAt());
+        postDto.setUpdatedAt(post.getUpdatedAt());
         postDto.setUserDto(userToUserDto(post.getUser()));
         postDto.setCategoryDto(categoryToCategoryDto(post.getCategory()));
         return postDto;
