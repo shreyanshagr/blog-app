@@ -3,18 +3,25 @@ package com.sparrow.blog.controller;
 import com.sparrow.blog.config.AppConstants;
 import com.sparrow.blog.entity.Post;
 import com.sparrow.blog.payload.ApiResponse;
+import com.sparrow.blog.payload.ImageResponse;
 import com.sparrow.blog.payload.PostDto;
 import com.sparrow.blog.payload.PostResponse;
+import com.sparrow.blog.service.FileService;
 import com.sparrow.blog.service.PostService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 
 @RestController
 @Slf4j
@@ -23,6 +30,11 @@ public class PostController {
     @Autowired
     private PostService postService;
 
+    @Autowired
+    private FileService fileService;
+
+    @Value("${project.image}")
+    private String path;
     // createPost
     @PostMapping("/user/{userId}/category/{categoryId}/post")
     public ResponseEntity<PostDto> createPost(
@@ -111,6 +123,50 @@ public class PostController {
         return new ResponseEntity<>(postResponse, HttpStatus.OK);
     }
 
+    // Upload Post Image
+    @PostMapping("/post/image/upload/{postId}")
+    public ResponseEntity<ImageResponse> uploadPostImage(
+            @RequestParam("image") MultipartFile image,
+            @PathVariable("postId") Integer postId
+    ) {
+
+        // Check if the uploaded file is an image
+        String contentType = image.getContentType();
+        if (contentType == null ||
+                !(contentType.equals(MediaType.IMAGE_JPEG_VALUE) ||
+                        contentType.equals(MediaType.IMAGE_PNG_VALUE) ||
+                        contentType.equals(MediaType.IMAGE_GIF_VALUE))) {
+            return new ResponseEntity<>(new ImageResponse(null, "Invalid file type. Only image files are allowed."), HttpStatus.BAD_REQUEST);
+        }
+
+        PostDto postdto = this.postService.getPostById(postId);
+      try{
+          String savedFile = this.fileService.uploadImage(path,image);
+            postdto.setImageName(savedFile);
+            PostDto updatedPost = this.postService.updatePost(postdto,postId);
+          return new ResponseEntity<>(new ImageResponse(savedFile,"is saved Successfully"),HttpStatus.OK);
+      }
+      catch (IOException e){
+          return new ResponseEntity<>(new ImageResponse(null,"File is not saved due to Internal Server Error"),HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+
+    @GetMapping(value = "/post/image/{imageName}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public void downloadImage(
+            @PathVariable("imageName") String imageName,
+            HttpServletResponse response
+    ) throws IOException {
+        log.info("Attempting to fetch image: {}", imageName);
+        InputStream resource = this.fileService.getResource(path, imageName);
+        if (resource == null) {
+            log.error("Image not found: {}", imageName);
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            response.getWriter().write("Image not found");
+            return;
+        }
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(resource, response.getOutputStream());
+    }
 
 
 
