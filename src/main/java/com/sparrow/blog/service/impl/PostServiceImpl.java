@@ -1,14 +1,13 @@
 package com.sparrow.blog.service.impl;
 
 import com.sparrow.blog.entity.Category;
+import com.sparrow.blog.entity.Comment;
 import com.sparrow.blog.entity.Post;
 import com.sparrow.blog.entity.User;
 import com.sparrow.blog.exception.ResourceNotFoundException;
-import com.sparrow.blog.payload.CategoryDto;
-import com.sparrow.blog.payload.PostDto;
-import com.sparrow.blog.payload.PostResponse;
-import com.sparrow.blog.payload.UserDto;
+import com.sparrow.blog.payload.*;
 import com.sparrow.blog.repository.CategoryRepo;
+import com.sparrow.blog.repository.CommentRepo;
 import com.sparrow.blog.repository.PostRepo;
 import com.sparrow.blog.repository.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +25,15 @@ public class PostServiceImpl implements com.sparrow.blog.service.PostService {
 
     @Autowired
     private PostRepo postRepo;
+
     @Autowired
     private UserRepo userRepo;
+
     @Autowired
     private CategoryRepo categoryRepo;
+
+    @Autowired
+    private CommentRepo commentRepo;
 
     @Override
     public PostDto createPost(PostDto postDto, int userId, int categoryId) {
@@ -233,7 +237,19 @@ public class PostServiceImpl implements com.sparrow.blog.service.PostService {
         postDto.setUpdatedAt(post.getUpdatedAt());
         postDto.setUserDto(userToUserDto(post.getUser()));
         postDto.setCategoryDto(categoryToCategoryDto(post.getCategory()));
+        List<Comment> comments = commentRepo.findByPost(post);
+        List<CommentDto> commentDtos = comments.stream()
+                .map(this::commentToCommentDto)
+                .toList();
+        postDto.setCommentDtos(commentDtos);
         return postDto;
+    }
+    private CommentDto commentToCommentDto(Comment comment) {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setContent(comment.getContent());
+        commentDto.setCommentId(comment.getCommentId());
+        commentDto.setUserId(comment.getUser().getUserId());
+        return commentDto;
     }
 
 }

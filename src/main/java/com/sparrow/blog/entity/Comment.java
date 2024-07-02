@@ -8,28 +8,17 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Data
 @Entity
 @Slf4j
 @NoArgsConstructor
-@Table(name="user")
-public class User {
+public class Comment {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO,generator="native")
-    private int userId;
+    private int commentId;
 
-    private String name;
-
-    private String email;
-
-    private String password;
-
-    private String about;
+    private String content;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -37,12 +26,11 @@ public class User {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    List<Post> post = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL )
-    private Set<Comment> comments = new HashSet<>();
-
-
-
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 }
